@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Shield, CheckCircle, XCircle, ArrowRight, RefreshCw } from '../components/Icons';
@@ -17,6 +17,10 @@ const CaptchaTask = () => {
     const [startTime, setStartTime] = useState(Date.now());
     const [responses, setResponses] = useState([]);
     const [showNextButton, setShowNextButton] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(15);
+    const [timerActive, setTimerActive] = useState(true);
+    const [hasTimedOut, setHasTimedOut] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false); // Prevent multiple submissions
 
     // Configuration - Using your updated reCAPTCHA keys
     const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY || '6LcWv4srAAAAAFzeZlN0rf_F8WPbXsSdOupUKG9R';
@@ -41,8 +45,53 @@ const CaptchaTask = () => {
         { type: 'recaptcha', instruction: 'Final verification - complete the reCAPTCHA below' }
     ];
 
+    // Move to next challenge or complete task
+    const moveToNext = useCallback((updatedResponses) => {
+        if (currentChallenge < TOTAL_CHALLENGES - 1) {
+            setCurrentChallenge(prev => prev + 1);
+        } else {
+            localStorage.setItem('captchaTaskResults', JSON.stringify(updatedResponses));
+            navigate('/completion');
+        }
+    }, [currentChallenge, TOTAL_CHALLENGES, navigate]);
+
+    // Handle time up - using useCallback to prevent stale closures
+    const handleTimeUp = useCallback(() => {
+        if (isProcessing) return; // Prevent multiple calls
+        setIsProcessing(true);
+        
+        setTimerActive(false);
+        setFeedback('Time limit reached! Moving to next challenge.');
+        setIsCorrect(false);
+        
+        // Store response data for timeout
+        const newResponse = {
+            challengeIndex: currentChallenge,
+            type: 'recaptcha',
+            token: 'timeout',
+            responseTime: 15000, // 15 seconds
+            timestamp: new Date().toISOString(),
+            success: false,
+            timedOut: true
+        };
+        
+        setResponses(prev => {
+            const updatedResponses = [...prev, newResponse];
+            // Move to next challenge after showing timeout message
+            setTimeout(() => {
+                moveToNext(updatedResponses);
+                setIsProcessing(false);
+            }, 2000);
+            return updatedResponses;
+        });
+    }, [currentChallenge, moveToNext, isProcessing]);
+
+    // Timer and challenge initialization
     useEffect(() => {
         setStartTime(Date.now());
+        setTimeLeft(15);
+        setTimerActive(true);
+        setHasTimedOut(false);
         // Reset reCAPTCHA when moving to next challenge
         if (recaptchaRef.current) {
             recaptchaRef.current.reset();
@@ -51,7 +100,33 @@ const CaptchaTask = () => {
         setIsCorrect(null);
         setFeedback('');
         setShowNextButton(false);
+        setIsProcessing(false);
     }, [currentChallenge]);
+
+    // Timer countdown effect
+    useEffect(() => {
+        if (!timerActive || hasTimedOut || isProcessing) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    setHasTimedOut(true);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timerActive, hasTimedOut, isProcessing]);
+
+    // Handle timeout effect
+    useEffect(() => {
+        if (hasTimedOut && !isProcessing) {
+            handleTimeUp();
+        }
+    }, [hasTimedOut, handleTimeUp, isProcessing]);
 
     // Handle reCAPTCHA completion
     const handleRecaptchaChange = async (token) => {
@@ -63,8 +138,11 @@ const CaptchaTask = () => {
             return;
         }
 
+        if (isProcessing) return; // Prevent multiple verifications
+
         setCaptchaToken(token);
         setIsVerifying(true);
+        setIsProcessing(true);
 
         try {
             // Verify the reCAPTCHA token
@@ -73,6 +151,7 @@ const CaptchaTask = () => {
             const responseTime = Date.now() - startTime;
 
             if (isValid) {
+                setTimerActive(false); // Stop timer on successful verification
                 setIsCorrect(true);
                 setFeedback('reCAPTCHA verified successfully!');
                 setShowNextButton(true);
@@ -106,13 +185,15 @@ const CaptchaTask = () => {
             }
         } finally {
             setIsVerifying(false);
+            setIsProcessing(false);
         }
     };
 
-
-
     // Handle moving to next challenge
     const handleNextChallenge = () => {
+        if (isProcessing) return;
+        setIsProcessing(true);
+        
         if (currentChallenge < TOTAL_CHALLENGES - 1) {
             setCurrentChallenge(prev => prev + 1);
         } else {
@@ -120,6 +201,7 @@ const CaptchaTask = () => {
             localStorage.setItem('captchaTaskResults', JSON.stringify(responses));
             navigate('/completion');
         }
+        setIsProcessing(false);
     };
 
     // Handle reCAPTCHA expiration
@@ -179,6 +261,12 @@ const CaptchaTask = () => {
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
                             reCAPTCHA Challenge {currentChallenge + 1}
                         </h1>
+                        
+                        {/* Timer Display */}
+                        <div className={`mb-4 text-2xl font-bold ${timeLeft <= 5 ? 'text-red-600' : 'text-blue-600'}`}>
+                            Time: {timeLeft}s
+                        </div>
+                        
                         <p className="text-gray-600">
                             {currentChallengeData.instruction}
                         </p>
@@ -212,6 +300,7 @@ const CaptchaTask = () => {
                                 <button
                                     onClick={handleNextChallenge}
                                     className="btn-primary text-lg px-8 py-3 flex items-center space-x-2"
+                                    disabled={isProcessing}
                                 >
                                     <span>
                                         {currentChallenge < TOTAL_CHALLENGES - 1 ? 'Next Challenge' : 'Complete Task'}
@@ -222,7 +311,7 @@ const CaptchaTask = () => {
                                 <button
                                     onClick={handleReset}
                                     className="btn-secondary text-lg px-6 py-3 flex items-center space-x-2"
-                                    disabled={isVerifying}
+                                    disabled={isVerifying || isProcessing}
                                 >
                                     <RefreshCw className="w-4 h-4" />
                                     <span>Reset</span>
