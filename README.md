@@ -4,7 +4,7 @@
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange.svg)](https://tensorflow.org)
 [![Status](https://img.shields.io/badge/Status-Active-success.svg)]()
 
-> **Naadvriksha** (*Sanskrit: नादवृक्ष - "Sound Tree"*) is a project that includes advanced generative music creation, transforming environmental sensor data into harmonious musical compositions through deep learning. These generated midi music are then used to enchance user capabilities while performing task. 
+> **Naadvriksha** (*Sanskrit: नादवृक्ष - "Sound Tree"*) is a unique project that explores the seamless interaction between plants, technology, and humans to support mental well being
 
 ## Project Overview
 
