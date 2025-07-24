@@ -1,15 +1,14 @@
-# 🌳 Naadvriksha: AI-Driven Weather Classification & Music Generation System
+# 🌳 Naadvriksha: Connect human to Nature
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange.svg)](https://tensorflow.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active-success.svg)]()
 
-> **Naadvriksha** (*Sanskrit: नादवृक्ष - "Sound Tree"*) is an innovative AI system that combines advanced weather classification with generative music creation, transforming environmental sensor data into harmonious musical compositions through deep learning.
+> **Naadvriksha** (*Sanskrit: नादवृक्ष - "Sound Tree"*) is a project that includes advanced generative music creation, transforming environmental sensor data into harmonious musical compositions through deep learning. These generated midi music are then used to enchance user capabilities while performing task. 
 
-## 🎯 Project Overview
+## Project Overview
 
-Naadvriksha represents a novel intersection of environmental monitoring, artificial intelligence, and creative arts. The system employs a sophisticated bidirectional LSTM architecture with custom attention mechanisms to classify weather patterns from multi-sensor data (temperature, humidity, accelerometer, gyroscope, and light sensors), subsequently translating these classifications into contextually appropriate musical compositions.
+Naadvriksha represents a novel intersection of environmental monitoring, artificial intelligence, creative arts to connect one with it. The system employs utilizes bidirectional LSTM architecture with custom attention mechanisms to classify weather patterns from multi-sensor data (temperature, humidity, accelerometer, gyroscope, and light sensors), subsequently translating these classifications into contextually appropriate musical compositions.
 
 ### 🏗️ System Architecture
 
@@ -26,7 +25,7 @@ graph TD
     I --> J[Cognitive Assessment]
 ```
 
-## 🧠 Deep Learning Architecture
+## Deep Learning Architecture
 
 ### Model Composition
 The core neural network implements a **multi-layered bidirectional LSTM architecture** with custom attention mechanisms:
@@ -59,7 +58,7 @@ Output = Attention_scores ⊗ Value + X  // Residual connection
 - **Class Balancing**: Computed balanced weights for imbalanced datasets
 - **Callbacks**: Early stopping (patience=15), learning rate reduction, model checkpointing
 
-## 📊 Model Performance Metrics
+##  Model Performance Metrics
 
 ### **Training Results:**
 ```
@@ -91,7 +90,7 @@ weighted avg      0.9876    0.9876    0.9875      2252
 | Stormy        | 96.49%   | 98.94%    | 96.49%  | 97.70%   |
 | Windy         | 99.15%   | 99.66%    | 99.15%  | 99.41%   |
 
-## 🎵 Generative Music System
+##  Generative Music System
 
 ### **Weather-to-Music Mapping Algorithm:**
 
@@ -142,7 +141,7 @@ Weather_Class → {
 4. **Rhythmic Patterns**: Weather-specific rhythmic templates
 5. **Dynamic Control**: Confidence-weighted velocity modulation
 
-## 🔬 Cognitive Assessment Framework
+## Cognitive Assessment Framework
 
 ### **Model Validation Pipeline:**
 
@@ -154,16 +153,29 @@ The cognitive assessment component implements comprehensive model validation thr
 - **Confidence Threshold Monitoring**: Dynamic confidence scoring
 - **Cross-validation**: K-fold validation on held-out datasets
 
-#### **Cognitive Metrics:**
-```python
-Cognitive_Assessment = {
-    'temporal_consistency': measure_prediction_stability(),
-    'confidence_distribution': analyze_prediction_confidence(),
-    'decision_boundary_analysis': evaluate_class_separation(),
-    'feature_importance': compute_attention_weights(),
-    'generalization_capacity': cross_domain_validation()
-}
-```
+### **Cognitive Assessment**
+
+This application implements a **Cognitive Assessment Suite** consisting of three time-bound tasks designed to evaluate different aspects of human cognitive functioning: **Math Task**, **Stroop Task**, and **Captcha Task**.
+
+
+#### **Math Task**
+
+- **Objective:** Evaluate numerical reasoning and arithmetic problems.
+- **Task Description:** Participants solve a series of basic arithmetic problems (e.g., addition, subtraction, multiplication) within a 15-second time constraint.
+- **Timer Behavior:** A countdown from 15 seconds begins with each question. If time runs out, the current response is marked as timed out, and the participant is moved to the **next** question.
+
+#### **Stroop Task**
+
+- **Objective:** Measure cognitive flexibility and user's attention.
+- **Task Description:** Participants are shown color words rendered in mismatching font colors (e.g., the word "RED" in blue font) and must select the correct **font color**, not the word itself.
+- **Timer Behavior:** 15 seconds per prompt. Timeout automatically logs the attempt and advances to the next.
+#### **Captcha Task**
+
+- **Objective:** Simulate real-world human verification to test response consistency and patience under mild cognitive load.
+- **Task Description:** Participants solve 20 reCAPTCHA challenges. Each must be completed within 15 seconds.
+- **Timer Behavior:** Timer starts on mount/reset. If the user fails to solve the reCAPTCHA in time, it is marked as timed out and advances after showing a message.
+---
+
 
 ## 🚀 Installation & Setup
 
