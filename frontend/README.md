@@ -8,40 +8,34 @@ NaadVriksha is an innovative cognitive assessment platform that explores the rel
 
 ## Features
 
-### 🏠 Home Page
-- Comprehensive project overview
-- Detailed explanation of Plant-Computer Interaction technology
+### Home Page
+- Comprehensive project overview and detailed explanation of Plant-Computer Interaction technology
 - Feature highlights including adaptive music generation and multi-modal data collection
 - Engaging visual design with gradient backgrounds and animations
 
-### 🧮 Math Task
+###  Math Task
 - 20 sequential math problems (basic arithmetic)
-- Progressive difficulty assessment
 - Real-time validation (must be correct to proceed)
 - Response time tracking
 - Visual feedback and progress indicators
 
-### 👁️ Stroop Task
+### Stroop Task
 - 20 color-word stimuli challenges
 - Tests selective attention and cognitive flexibility
 - Font color identification while ignoring word meaning
 - Interactive color selection interface
-- Cognitive load measurement
-
-### 🛡️ CAPTCHA Task
-- 5 Google reCAPTCHA challenges for enhanced security
+  
+###  CAPTCHA Task
+- 20 Google reCAPTCHA challenges for coginitive measurments
 - Real-time verification using Google's reCAPTCHA API
-- Visual perception and human verification testing
 - Attention to detail and bot detection assessment
 - Automatic token verification with feedback
 
-### 📊 Results & Completion
+### Results & Completion
 - Comprehensive performance summary
 - Task-by-task breakdown
 - Response time analytics
-- Achievement certification
 - Data export functionality
-- Optional feedback collection
 
 ## Technology Stack
 
@@ -115,53 +109,6 @@ NaadVriksha is an innovative cognitive assessment platform that explores the rel
    npm run build
    ```
 
-## Google reCAPTCHA Integration
-
-The CAPTCHA task uses Google's reCAPTCHA v2 for enhanced security and human verification:
-
-### Features
-- **Real-time Verification**: Instant validation of user responses
-- **Multiple Challenge Types**: Various visual and audio challenges
-- **Accessibility Support**: Screen reader and keyboard navigation support
-- **Mobile Responsive**: Optimized for all device sizes
-- **Security**: Bot detection and spam prevention
-
-### Configuration
-1. Visit [Google reCAPTCHA](https://www.google.com/recaptcha/admin)
-2. Create a new site with reCAPTCHA v2 "I'm not a robot" checkbox
-3. Add your domain (localhost for development)
-4. Copy the site key and secret key to your `.env` file
-
-### Server-Side Verification
-For production use, implement server-side verification:
-
-```javascript
-// Backend API endpoint example (Node.js/Express)
-app.post('/api/verify-recaptcha', async (req, res) => {
-  const { token } = req.body;
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-  
-  try {
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: secretKey,
-        response: token,
-        remoteip: req.ip
-      })
-    });
-    
-    const data = await response.json();
-    res.json({ success: data.success, score: data.score });
-  } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
-  }
-});
-```
-
 ## Project Structure
 
 ```
@@ -211,16 +158,6 @@ The application is designed for easy integration with:
 - MIDI-based music generation systems
 - Real-time weather data integration
 
-## Research Applications
-
-This application supports research in:
-- Human-Computer Interaction (HCI)
-- Plant-Computer Interaction (PCI)
-- Cognitive psychology and assessment
-- Emotional response measurement
-- Multi-modal data collection
-- Adaptive system design
-
 ## Contributing
 
 The codebase is modular and maintainable, designed for:
@@ -228,7 +165,3 @@ The codebase is modular and maintainable, designed for:
 - Integration with backend services
 - Customization of assessment parameters
 - Extension of data collection capabilities
-
-## License
-
-This project is part of the NaadVriksha research initiative exploring human emotions through Plant-Computer Interaction.
