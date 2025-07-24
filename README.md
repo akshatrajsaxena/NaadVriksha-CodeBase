@@ -4,7 +4,7 @@
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange.svg)](https://tensorflow.org)
 [![Status](https://img.shields.io/badge/Status-Active-success.svg)]()
 
-> **Naadvriksha** (*Sanskrit: नादवृक्ष - "Sound Tree"*) is a unique project that explores the seamless interaction between plants, technology, and humans to support mental well being
+> **Naadvriksha** (*Sanskrit: नादवृक्ष - "Sound Tree"*) is a project that includes advanced generative music creation, transforming environmental sensor data into harmonious musical compositions through deep learning. These generated midi music are then used to enchance user capabilities while performing task. 
 
 ## Project Overview
 
@@ -202,40 +202,7 @@ seaborn>=0.11.0
 ```bash
 git clone https://github.com/yourusername/naadvriksha.git
 cd naadvriksha
-pip install -r requirements.txt
 ```
-
-## 📁 Project Structure
-
-```
-naadvriksha/
-├── models/
-│   ├── weather_classifier.py      # Main model architecture
-│   ├── attention_layer.py         # Custom attention implementation
-│   └── best_model.h5             # Trained model weights
-├── music_generation/
-│   ├── sensor_to_midi.py         # Music generation engine
-│   ├── music_mapping.py          # Weather-to-music mappings
-│   └── midi_processor.py         # MIDI processing utilities
-├── data/
-│   ├── trainDataFiltered.csv     # Training dataset
-│   ├── valDataFiltered.csv       # Validation dataset
-│   ├── testDataFiltered.csv      # Test dataset
-│   └── midiMusic.csv             # Music generation dataset
-├── inference/
-│   ├── real_time_validator.py    # Real-time model validation
-│   ├── cognitive_assessment.py   # Model assessment framework
-│   └── streaming_inference.py    # Live data processing
-├── output/
-│   ├── MIDI/                     # Generated MIDI files
-│   ├── audio/                    # Synthesized audio files
-│   └── reports/                  # Analysis reports
-└── utils/
-    ├── data_preprocessing.py     # Data preparation utilities
-    ├── visualization.py          # Plotting and visualization
-    └── metrics.py               # Performance evaluation
-```
-
 ## 🔧 Usage Examples
 
 ### **1. Training the Weather Classification Model:**
@@ -311,70 +278,3 @@ validator.generate_assessment_report()
 - **Real-time Validation**: Continuous model performance monitoring
 - **Confidence Analysis**: Dynamic threshold adaptation based on prediction certainty
 - **Temporal Consistency Metrics**: Evaluation of prediction stability over time
-
-## 🎯 Key Features
-
-- ✅ **High Accuracy**: 98.76% test accuracy with balanced precision/recall
-- ✅ **Real-time Processing**: Sub-100ms inference latency
-- ✅ **Musical Coherence**: Contextually appropriate music generation
-- ✅ **Scalable Architecture**: Modular design for easy extension
-- ✅ **Comprehensive Validation**: Multi-metric model assessment
-- ✅ **Cross-platform Compatibility**: Runs on CPU/GPU environments
-
-## 🔮 Future Enhancements
-
-- **Multi-modal Fusion**: Integration of visual and audio environmental data
-- **Adaptive Learning**: Online learning capabilities for model fine-tuning
-- **Enhanced Music Theory**: Implementation of advanced harmonic progressions
-- **Mobile Deployment**: Edge computing optimization for IoT devices
-- **Interactive Interface**: Real-time web-based visualization dashboard
-
-## 📚 Research Background
-
-This project draws inspiration from:
-- **Environmental Psychology**: Weather's impact on human emotional states
-- **Music Cognition**: Psychoacoustic principles of musical perception
-- **Deep Learning**: Advanced sequence modeling and attention mechanisms
-- **Human-Computer Interaction**: Intuitive AI-human creative collaboration
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
-
-### **Development Workflow:**
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **TensorFlow Team** for the deep learning framework
-- **Pretty-MIDI** contributors for music processing tools
-- **Scikit-learn** community for machine learning utilities
-- **Music Theory Research** that informed our mapping algorithms
-
-## 📞 Contact
-
-**Project Maintainer**: [Your Name]
-- 📧 Email: your.email@domain.com
-- 🔗 LinkedIn: [Your LinkedIn Profile]
-- 🐙 GitHub: [@yourusername](https://github.com/yourusername)
-
----
-
-<div align="center">
-
-**🌳 Naadvriksha - Where Nature Meets Music Through AI 🎵**
-
-*"In every weather pattern lies a symphony waiting to be discovered"*
-
-[![Stars](https://img.shields.io/github/stars/yourusername/naadvriksha?style=social)](https://github.com/yourusername/naadvriksha/stargazers)
-[![Forks](https://img.shields.io/github/forks/yourusername/naadvriksha?style=social)](https://github.com/yourusername/naadvriksha/network/members)
-
-</div>
