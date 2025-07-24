@@ -1,2 +1,3 @@
 # NaadVriksha-CodeBase
-This is the NaadVriksha Codebase 
+
+NaadVriksha is an innovative that explores the relationship between human emotions, environmental factors, and plant responses.
