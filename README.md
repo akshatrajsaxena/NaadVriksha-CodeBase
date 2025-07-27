@@ -200,7 +200,7 @@ seaborn>=0.11.0
 
 ### **Installation:**
 ```bash
-git clone https://github.com/yourusername/naadvriksha.git
+git clone https://github.com/akshatrajsaxena/naadvriksha-codebase.git
 cd naadvriksha
 ```
 ## 🔧 Usage Examples
