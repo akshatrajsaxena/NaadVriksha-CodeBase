@@ -1,0 +1,22 @@
+export const mathQuestions = [
+  { id: 1, question: "What is 15 × 8?", answer: "120" },
+  { id: 2, question: "Solve: 144 ÷ 12", answer: "12" },
+  { id: 3, question: "What is 25% of 80?", answer: "20" },
+  { id: 4, question: "Calculate: 7² + 3²", answer: "58" },
+  { id: 5, question: "What is 3/4 of 48?", answer: "36" },
+  { id: 6, question: "Solve: 2x + 5 = 17 (find x)", answer: "6" },
+  { id: 7, question: "What is √64?", answer: "8" },
+  { id: 8, question: "Calculate: 18 + 7 × 3", answer: "39" },
+  { id: 9, question: "What is 40% of 150?", answer: "60" },
+  { id: 10, question: "Solve: 156 - 89", answer: "67" },
+  { id: 11, question: "What is 13 × 9?", answer: "117" },
+  { id: 12, question: "Calculate: 225 ÷ 15", answer: "15" },
+  { id: 13, question: "What is 2/3 of 90?", answer: "60" },
+  { id: 14, question: "Solve: 5² - 3²", answer: "16" },
+  { id: 15, question: "What is 35% of 200?", answer: "70" },
+  { id: 16, question: "Calculate: 8 × 7 - 12", answer: "44" },
+  { id: 17, question: "What is √81?", answer: "9" },
+  { id: 18, question: "Solve: 3x - 4 = 14 (find x)", answer: "6" },
+  { id: 19, question: "What is 5/8 of 64?", answer: "40" },
+  { id: 20, question: "Calculate: 19 + 6 × 4", answer: "43" }
+];
