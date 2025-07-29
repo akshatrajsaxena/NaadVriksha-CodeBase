@@ -1,132 +1,234 @@
-# Getting Started with Create React App
+# NaadVriksha - Cognitive Assessment Web Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive React-based web application for cognitive assessment through Plant-Computer Interaction (PCI) research.
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+NaadVriksha is an innovative cognitive assessment platform that explores the relationship between human emotions, environmental factors, and plant responses. The application consists of three sequential cognitive tasks designed to measure different aspects of cognitive performance while monitoring emotional responses.
 
-### `npm start`
+## Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🏠 Home Page
+- Comprehensive project overview
+- Detailed explanation of Plant-Computer Interaction technology
+- Feature highlights including adaptive music generation and multi-modal data collection
+- Engaging visual design with gradient backgrounds and animations
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 🧮 Math Task
+- 20 sequential math problems (basic arithmetic)
+- Progressive difficulty assessment
+- Real-time validation (must be correct to proceed)
+- Response time tracking
+- Visual feedback and progress indicators
 
-### `npm test`
+### 👁️ Stroop Task
+- 20 color-word stimuli challenges
+- Tests selective attention and cognitive flexibility
+- Font color identification while ignoring word meaning
+- Interactive color selection interface
+- Cognitive load measurement
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 🛡️ CAPTCHA Task
+- 5 Google reCAPTCHA challenges for enhanced security
+- Real-time verification using Google's reCAPTCHA API
+- Visual perception and human verification testing
+- Attention to detail and bot detection assessment
+- Automatic token verification with feedback
 
-### `npm run build`
+### 📊 Results & Completion
+- Comprehensive performance summary
+- Task-by-task breakdown
+- Response time analytics
+- Achievement certification
+- Data export functionality
+- Optional feedback collection
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Technology Stack
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **React 18.2.0** - Modern functional components with hooks
+- **React Router DOM 6.28.0** - Seamless navigation between tasks
+- **Tailwind CSS 3.4.0** - Responsive, utility-first styling
+- **React Google reCAPTCHA** - Google reCAPTCHA integration for security
+- **Custom Icons** - Lightweight SVG icon components
+- **PostCSS & Autoprefixer** - CSS processing and compatibility
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Key Components
 
-### `npm run eject`
+### Reusable Components
+- `ProgressTracker` - Visual progress indication across tasks
+- `TaskCard` - Consistent card layout for all tasks
+- `FeedbackForm` - Comprehensive user feedback collection
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Pages
+- `HomePage` - Landing page with project information
+- `MathTask` - Mathematical problem solving interface
+- `StroopTask` - Color-word interference testing
+- `CaptchaTask` - Visual perception challenges
+- `CompletionPage` - Results summary and feedback collection
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Design Features
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Visual Design
+- Gradient backgrounds and smooth animations
+- Responsive design for all screen sizes
+- Consistent color scheme with nature-inspired palette
+- Accessibility-compliant interface elements
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### User Experience
+- Sequential task flow with validation
+- Real-time feedback and progress tracking
+- Smooth transitions between sections
+- Clear instructions and visual cues
+- Error handling and retry mechanisms
 
-## Learn More
+### Data Collection
+- Response time measurement for each question
+- Accuracy tracking across all tasks
+- User feedback and emotional state reporting
+- Local storage for session persistence
+- JSON export functionality
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Installation & Setup
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. **Install Dependencies**
+   ```bash
+   cd frontend
+   npm install --legacy-peer-deps
+   ```
 
-### Code Splitting
+2. **Configure Google reCAPTCHA**
+   - Create a `.env` file in the frontend directory
+   - Add your reCAPTCHA keys:
+   ```env
+   REACT_APP_RECAPTCHA_SITE_KEY=6LcWv4srAAAAAFzeZlN0rf_F8WPbXsSdOupUKG9R
+   REACT_APP_RECAPTCHA_SECRET_KEY=6LcWv4srAAAAAOrT76xkSyTUGtFo1Z4BISRPE1o-
+   ```
+   - Keys are already configured for the NaadVriksha project
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+3. **Start Development Server**
+   ```bash
+   npm start
+   ```
 
-### Analyzing the Bundle Size
+4. **Build for Production**
+   ```bash
+   npm run build
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Google reCAPTCHA Integration
 
-### Making a Progressive Web App
+The CAPTCHA task uses Google's reCAPTCHA v2 for enhanced security and human verification:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Features
+- **Real-time Verification**: Instant validation of user responses
+- **Multiple Challenge Types**: Various visual and audio challenges
+- **Accessibility Support**: Screen reader and keyboard navigation support
+- **Mobile Responsive**: Optimized for all device sizes
+- **Security**: Bot detection and spam prevention
 
-### Advanced Configuration
+### Configuration
+1. Visit [Google reCAPTCHA](https://www.google.com/recaptcha/admin)
+2. Create a new site with reCAPTCHA v2 "I'm not a robot" checkbox
+3. Add your domain (localhost for development)
+4. Copy the site key and secret key to your `.env` file
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Server-Side Verification
+For production use, implement server-side verification:
 
-### Deployment
+```javascript
+// Backend API endpoint example (Node.js/Express)
+app.post('/api/verify-recaptcha', async (req, res) => {
+  const { token } = req.body;
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+  
+  try {
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: secretKey,
+        response: token,
+        remoteip: req.ip
+      })
+    });
+    
+    const data = await response.json();
+    res.json({ success: data.success, score: data.score });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Project Structure
 
 ```
-frontend
-├─ .kiro
-│  └─ specs
-│     └─ naadvriksha-cognitive-assessment
-│        ├─ design.md
-│        ├─ requirements.md
-│        └─ tasks.md
-├─ package-lock.json
-├─ package.json
-├─ postcss.config.js
-├─ public
-│  ├─ favicon.ico
-│  ├─ index.html
-│  ├─ logo192.png
-│  ├─ logo512.png
-│  ├─ manifest.json
-│  └─ robots.txt
-├─ README.md
-├─ src
-│  ├─ App.css
-│  ├─ App.js
-│  ├─ App.test.js
-│  ├─ components
-│  │  ├─ CaptchaTask.js
-│  │  ├─ CompletionPage.js
-│  │  ├─ HomePage.js
-│  │  ├─ Icons.js
-│  │  ├─ MathTask.js
-│  │  ├─ ProgressTracker.js
-│  │  ├─ StroopTask.js
-│  │  ├─ Timer.js
-│  │  └─ __tests__
-│  │     ├─ ProgressTracker.test.js
-│  │     └─ Timer.test.js
-│  ├─ context
-│  │  └─ SessionContext.js
-│  ├─ data
-│  │  ├─ captchaChallenges.js
-│  │  ├─ mathQuestions.js
-│  │  └─ stroopStimuli.js
-│  ├─ index.css
-│  ├─ index.js
-│  ├─ logo.svg
-│  ├─ reportWebVitals.js
-│  ├─ services
-│  │  ├─ DataService.js
-│  │  ├─ TimerService.js
-│  │  ├─ ValidationService.js
-│  │  └─ __tests__
-│  │     ├─ DataService.test.js
-│  │     ├─ TimerService.test.js
-│  │     └─ ValidationService.test.js
-│  ├─ setupTests.js
-│  └─ utils
-│     ├─ userInteractionBlocker.js
-│     └─ __tests__
-│        └─ userInteractionBlocker.test.js
-└─ tailwind.config.js
-
+frontend/
+├── public/                 # Static assets
+├── src/
+│   ├── components/        # Reusable components
+│   │   ├── ProgressTracker.js
+│   │   ├── TaskCard.js
+│   │   └── FeedbackForm.js
+│   ├── pages/            # Main application pages
+│   │   ├── HomePage.js
+│   │   ├── MathTask.js
+│   │   ├── StroopTask.js
+│   │   ├── CaptchaTask.js
+│   │   └── CompletionPage.js
+│   ├── App.js            # Main application component
+│   ├── App.css           # Custom styles
+│   ├── index.js          # Application entry point
+│   └── index.css         # Tailwind CSS imports
+├── package.json          # Dependencies and scripts
+├── tailwind.config.js    # Tailwind configuration
+└── postcss.config.js     # PostCSS configuration
 ```
+
+## Cognitive Assessment Flow
+
+1. **Welcome & Information** - Users learn about the NaadVriksha project
+2. **Math Task** - Sequential problem solving with accuracy requirements
+3. **Stroop Task** - Color identification with cognitive interference
+4. **CAPTCHA Task** - Visual perception and attention challenges
+5. **Completion & Feedback** - Results summary and optional feedback
+
+## Data Storage
+
+- **Local Storage**: Session data, task results, and user progress
+- **JSON Export**: Complete session data for research purposes
+- **Response Tracking**: Detailed timing and accuracy metrics
+
+## Future Integration Points
+
+The application is designed for easy integration with:
+- Backend APIs for data persistence
+- Facial recognition emotion tracking
+- Speech-based NLP emotion models
+- Environmental sensor data
+- MIDI-based music generation systems
+- Real-time weather data integration
+
+## Research Applications
+
+This application supports research in:
+- Human-Computer Interaction (HCI)
+- Plant-Computer Interaction (PCI)
+- Cognitive psychology and assessment
+- Emotional response measurement
+- Multi-modal data collection
+- Adaptive system design
+
+## Contributing
+
+The codebase is modular and maintainable, designed for:
+- Easy addition of new cognitive tasks
+- Integration with backend services
+- Customization of assessment parameters
+- Extension of data collection capabilities
+
+## License
+
+This project is part of the NaadVriksha research initiative exploring human emotions through Plant-Computer Interaction.
