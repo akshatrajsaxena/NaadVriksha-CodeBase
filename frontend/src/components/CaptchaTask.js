@@ -15,10 +15,51 @@ const CaptchaTask = () => {
   const [feedback, setFeedback] = useState({ show: false, isCorrect: false, message: '' });
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [challengeStartTime, setChallengeStartTime] = useState(null);
+  
+  // Core penalty system state
+  const [hasIncorrectAttempt, setHasIncorrectAttempt] = useState(false); // Track if current challenge has incorrect attempts
+  const [penaltyActive, setPenaltyActive] = useState(false); // Track if penalty should be applied to current challenge
+  const [currentChallengeTime, setCurrentChallengeTime] = useState(60); // Current challenge's time limit
+  
   const inputRef = useRef(null);
 
   const currentChallenge = imageCaptchaChallengesWithImages[currentChallengeIndex];
   const isLastChallenge = currentChallengeIndex >= imageCaptchaChallengesWithImages.length - 1;
+
+  // Refresh prevention functionality
+  useEffect(() => {
+    // Prevent keyboard shortcuts (F5, Ctrl+R, Cmd+R)
+    const handleKeyDown = (event) => {
+      // F5 key
+      if (event.key === 'F5') {
+        event.preventDefault();
+        return false;
+      }
+      
+      // Ctrl+R or Cmd+R
+      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+        event.preventDefault();
+        return false;
+      }
+    };
+
+    // Prevent browser reload via UI (reload button, etc.)
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = ''; // Required for Chrome
+      return ''; // Required for some browsers
+    };
+
+    // Add event listeners
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup function to remove event listeners
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleanup on unmount
 
   // Initialize task when component mounts
   useEffect(() => {
@@ -53,10 +94,15 @@ const CaptchaTask = () => {
   }, [currentChallengeIndex]);
 
   const startChallenge = () => {
+    // Determine time for current challenge based on penalty status
+    const timeForThisChallenge = penaltyActive ? 50 : 60; // 10-second penalty: 60s -> 50s
+    setCurrentChallengeTime(timeForThisChallenge);
+    
     setChallengeStartTime(Date.now());
     setIsTimerActive(true);
     setUserResponse('');
     setFeedback({ show: false, isCorrect: false, message: '' });
+    setHasIncorrectAttempt(false); // Reset for new challenge
     
     // Focus input after a short delay to ensure it's rendered
     setTimeout(() => {
@@ -96,12 +142,21 @@ const CaptchaTask = () => {
         message: 'Correct!'
       });
       
-      // Stop timer and move to next challenge after short delay
+      // Stop timer
       setIsTimerActive(false);
+      
+      // Determine penalty for NEXT challenge
+      // If this was answered correctly on first attempt (no prior incorrect attempts), next challenge gets 60s
+      // If there were incorrect attempts before this correct answer, next challenge gets 50s
+      setPenaltyActive(hasIncorrectAttempt);
+      
       setTimeout(() => {
         moveToNextChallenge();
       }, 1000);
     } else {
+      // Incorrect answer
+      setHasIncorrectAttempt(true); // Mark that this challenge has had incorrect attempts
+      
       setFeedback({
         show: true,
         isCorrect: false,
@@ -139,6 +194,10 @@ const CaptchaTask = () => {
         isCorrect: false,
         message: 'Time\'s up! Moving to next challenge...'
       });
+      
+      // CRITICAL: Apply penalty to next challenge when timeout occurs
+      // This ensures that timeouts always result in 50s for the next challenge
+      setPenaltyActive(true);
     }
 
     // Move to next challenge after showing timeout message
@@ -173,6 +232,21 @@ const CaptchaTask = () => {
     if (e.key === 'Enter') {
       handleResponseSubmit(e);
     }
+  };
+
+  // Helper function to get display information
+  const getDisplayInfo = () => {
+    const timeClass = currentChallengeTime === 50 ? 'text-orange-600' : 'text-green-600';
+    const timeLabel = currentChallengeTime === 50 ? 'Penalty Applied' : 'Full Time';
+    const warningMessage = penaltyActive ? 'This challenge has reduced time due to previous incorrect answer or timeout.' : null;
+    const penaltyMessage = hasIncorrectAttempt ? 'Next challenge will have reduced time if you get this wrong or time runs out.' : null;
+    
+    return {
+      timeClass,
+      timeLabel,
+      warningMessage,
+      penaltyMessage
+    };
   };
 
   // Render image-based CAPTCHA challenge
@@ -211,6 +285,8 @@ const CaptchaTask = () => {
     );
   };
 
+  const displayInfo = getDisplayInfo();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 task-content">
       <div className="container mx-auto px-4 py-8">
@@ -218,7 +294,10 @@ const CaptchaTask = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">CAPTCHA Task</h1>
           <p className="text-gray-600">
-            Solve each challenge correctly to advance. You have 15 seconds per challenge.
+            Solve each challenge correctly to advance. You start with 60 seconds per challenge.
+          </p>
+          <p className="text-sm text-orange-600 mt-2">
+            <strong>Unified Penalty System:</strong> Any wrong answer or timeout reduces next challenge time to 50 seconds.
           </p>
         </div>
 
@@ -237,26 +316,53 @@ const CaptchaTask = () => {
           <div className="bg-white rounded-lg shadow-lg p-8">
             {/* Timer */}
             <div className="flex justify-center mb-8">
-              <Timer
-                key={`captcha-timer-${currentChallengeIndex}`}
-                duration={15}
-                isActive={isTimerActive}
-                onExpire={handleTimerExpire}
-                size="large"
-                showProgress={true}
-              />
+              <div className="text-center">
+                <Timer
+                  key={`captcha-timer-${currentChallengeIndex}-${currentChallengeTime}`}
+                  duration={currentChallengeTime}
+                  isActive={isTimerActive}
+                  onExpire={handleTimerExpire}
+                  size="large"
+                  showProgress={true}
+                />
+                <div className="mt-2 text-sm text-gray-600">
+                  <span className="font-medium">Time Remaining: {currentChallengeTime} seconds</span>
+                  {displayInfo.warningMessage && (
+                    <div className="text-orange-600 font-medium mt-1">
+                      {displayInfo.warningMessage}
+                    </div>
+                  )}
+                  {displayInfo.penaltyMessage && (
+                    <div className="text-red-600 font-medium mt-1">
+                      {displayInfo.penaltyMessage}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Challenge Header */}
             <div className="text-center mb-6">
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                {getChallengeTypeIcon()}
-                <h2 className="text-2xl font-semibold text-gray-900">
-                  Challenge {currentChallengeIndex + 1}
-                </h2>
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                  Image Recognition
-                </span>
+              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center space-x-3">
+                    {getChallengeTypeIcon()}
+                    <h2 className="text-2xl font-semibold text-gray-900">
+                      Challenge {currentChallengeIndex + 1} of {imageCaptchaChallengesWithImages.length}
+                    </h2>
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                      Image Recognition
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-lg font-bold ${displayInfo.timeClass}`}>
+                      {currentChallengeTime}s
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {displayInfo.timeLabel}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -320,6 +426,15 @@ const CaptchaTask = () => {
                 <p>Enter your answer and press Enter or click Submit</p>
                 <p>You must answer correctly to proceed to the next challenge</p>
               </div>
+              <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+                <p className="text-purple-700 font-medium">Unified Timer Rules:</p>
+                <p className="text-purple-600 text-xs mt-1">
+                  • Start with 60 seconds per challenge<br/>
+                  • Any wrong answer OR timeout = Next challenge gets 50 seconds<br/>
+                  • Correct first try = Next challenge keeps 60 seconds<br/>
+                  • Only two states: 60s (no penalty) or 50s (penalty)
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -329,7 +444,7 @@ const CaptchaTask = () => {
           <div className="bg-white rounded-lg shadow-sm p-4">
             <div className="flex justify-between items-center text-sm text-gray-600">
               <span>Task: CAPTCHA Challenges</span>
-              <span>Time per challenge: 15 seconds</span>
+              <span>Current Time: {currentChallengeTime}s</span>
               <span>Progress: {currentChallengeIndex + 1}/{imageCaptchaChallengesWithImages.length}</span>
             </div>
           </div>
