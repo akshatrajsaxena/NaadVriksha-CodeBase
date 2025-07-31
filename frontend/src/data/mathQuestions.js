@@ -14,9 +14,9 @@ export const mathQuestions = [
   { id: 13, question: "What is 2/3 of 90?", answer: "60" },
   { id: 14, question: "Solve: 5² - 3²", answer: "16" },
   { id: 15, question: "What is 35% of 200?", answer: "70" },
-  { id: 16, question: "Calculate: 8 × 7 - 12", answer: "44" },
-  { id: 17, question: "What is √81?", answer: "9" },
-  { id: 18, question: "Solve: 3x - 4 = 14 (find x)", answer: "6" },
+  { id: 16, question: "Calculate: 11 × 12", answer: "132" },
+  { id: 17, question: "What is 60% of 85?", answer: "51" },
+  { id: 18, question: "Solve: 324 ÷ 18", answer: "18" },
   { id: 19, question: "What is 5/8 of 64?", answer: "40" },
-  { id: 20, question: "Calculate: 19 + 6 × 4", answer: "43" }
+  { id: 20, question: "Calculate: 9² - 4²", answer: "65" }
 ];
