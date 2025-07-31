@@ -15,40 +15,76 @@ const StroopTask = () => {
   const [feedback, setFeedback] = useState({ show: false, isCorrect: false, message: '' });
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [stimulusStartTime, setStimulusStartTime] = useState(null);
+  const [hasIncorrectAttempt, setHasIncorrectAttempt] = useState(false);
+  const [penaltyActive, setPenaltyActive] = useState(false); 
+  const [currentStimulusTime, setCurrentStimulusTime] = useState(60);
 
   const currentStimulus = stroopStimuli[currentStimulusIndex];
   const isLastStimulus = currentStimulusIndex >= stroopStimuli.length - 1;
 
-  // Initialize task when component mounts
+  // Refresh prevention functionality
   useEffect(() => {
-    // Start the stroop task in session
+    // Prevent keyboard shortcuts (F5, Ctrl+R, Cmd+R)
+    const handleKeyDown = (event) => {
+      // F5 key
+      if (event.key === 'F5') {
+        event.preventDefault();
+        return false;
+      }
+      
+      // Ctrl+R or Cmd+R
+      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+        event.preventDefault();
+        return false;
+      }
+    };
+
+    // Prevent browser reload via UI (reload button, etc.)
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = ''; // Required for Chrome
+      return ''; // Required for some browsers
+    };
+
+    // Add event listeners
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup function to remove event listeners
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleanup on unmount
+
+  useEffect(() => {
     actions.startTask('stroop');
     
-    // Enable interaction blocking
     UserInteractionBlocker.enableBlocking();
     
-    // Start first stimulus
     startStimulus();
 
-    // Cleanup on unmount
     return () => {
       UserInteractionBlocker.disableBlocking();
     };
   }, []);
 
-  // Update session progress when stimulus changes and start new stimulus
   useEffect(() => {
     actions.updateProgress('stroop', currentStimulusIndex);
-    if (currentStimulusIndex > 0) { // Don't call startStimulus on initial load
+    if (currentStimulusIndex > 0) {
       startStimulus();
     }
   }, [currentStimulusIndex]);
-
+  
   const startStimulus = () => {
+    const timeForThisStimulus = penaltyActive ? 10 : 15;
+    setCurrentStimulusTime(timeForThisStimulus);
+    
     setStimulusStartTime(Date.now());
     setIsTimerActive(true);
     setSelectedColor('');
     setFeedback({ show: false, isCorrect: false, message: '' });
+    setHasIncorrectAttempt(false);
   };
 
   const handleColorSelection = (colorValue) => {
@@ -61,7 +97,6 @@ const StroopTask = () => {
     const responseTime = Date.now() - stimulusStartTime;
     const isCorrect = ValidationService.validateStroopResponse(currentStimulus, colorValue);
     
-    // Record the response
     const stimulusData = {
       questionId: currentStimulus.id,
       question: `Word: ${currentStimulus.word} (Color: ${currentStimulus.color})`,
@@ -81,19 +116,22 @@ const StroopTask = () => {
         message: 'Correct!'
       });
       
-      // Stop timer and move to next stimulus after short delay
       setIsTimerActive(false);
+      
+      setPenaltyActive(hasIncorrectAttempt);
+      
       setTimeout(() => {
         moveToNextStimulus();
       }, 1000);
     } else {
+      setHasIncorrectAttempt(true);
+      
       setFeedback({
         show: true,
         isCorrect: false,
         message: 'Incorrect. Try again!'
       });
       
-      // Clear selection but don't advance
       setTimeout(() => {
         setSelectedColor('');
         setFeedback({ show: false, isCorrect: false, message: '' });
@@ -104,7 +142,6 @@ const StroopTask = () => {
   const handleTimerExpire = () => {
     setIsTimerActive(false);
     
-    // Record timeout response if user hasn't answered correctly yet
     if (!feedback.isCorrect) {
       const responseTime = Date.now() - stimulusStartTime;
       const stimulusData = {
@@ -124,28 +161,25 @@ const StroopTask = () => {
         isCorrect: false,
         message: 'Time\'s up! Moving to next stimulus...'
       });
+      
+      setPenaltyActive(true);
     }
 
-    // Move to next stimulus after showing timeout message
     setTimeout(() => {
       moveToNextStimulus();
     }, 1500);
   };
-
+  
   const moveToNextStimulus = () => {
-    setIsTimerActive(false); // Stop current timer
-    
+    setIsTimerActive(false);
     if (isLastStimulus) {
-      // Complete the stroop task
       actions.completeTask('stroop');
       navigate('/captcha');
     } else {
       setCurrentStimulusIndex(prev => prev + 1);
-      // startStimulus will be called by useEffect when currentStimulusIndex changes
     }
   };
 
-  // Get the color class for the stimulus word
   const getWordColorClass = (color) => {
     const colorMap = {
       red: 'text-red-500',
@@ -158,18 +192,34 @@ const StroopTask = () => {
     return colorMap[color] || 'text-gray-500';
   };
 
+  const getDisplayInfo = () => {
+    const timeClass = currentStimulusTime === 55 ? 'text-orange-600' : 'text-green-600';
+    const timeLabel = currentStimulusTime === 55 ? 'Penalty Applied' : 'Full Time';
+    const warningMessage = penaltyActive ? 'This stimulus has reduced time due to previous incorrect answer or timeout.' : null;
+    const penaltyMessage = hasIncorrectAttempt ? 'Next stimulus will have reduced time if you get this wrong or time runs out.' : null;
+    
+    return {
+      timeClass,
+      timeLabel,
+      warningMessage,
+      penaltyMessage
+    };
+  };
+  
+  const displayInfo = getDisplayInfo();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 task-content">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Stroop Task</h1>
           <p className="text-gray-600">
             Click the color that matches the <strong>font color</strong> of the word, not the word itself.
           </p>
+          <p className="text-sm text-orange-600 mt-2">
+            <strong>Unified Penalty System:</strong> Any wrong answer or timeout reduces next stimulus time by 5 seconds.
+          </p>
         </div>
-
-        {/* Progress Tracker */}
         <div className="max-w-2xl mx-auto mb-8">
           <ProgressTracker
             current={currentStimulusIndex + 1}
@@ -178,28 +228,48 @@ const StroopTask = () => {
             variant="success"
           />
         </div>
-
-        {/* Main Task Area */}
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8">
-            {/* Timer */}
             <div className="flex justify-center mb-8">
-              <Timer
-                key={`stroop-timer-${currentStimulusIndex}`}
-                duration={15}
-                isActive={isTimerActive}
-                onExpire={handleTimerExpire}
-                size="large"
-                showProgress={true}
-              />
+              <div className="text-center">
+                <Timer
+                  key={`stroop-timer-${currentStimulusIndex}-${currentStimulusTime}`}
+                  duration={currentStimulusTime}
+                  isActive={isTimerActive}
+                  onExpire={handleTimerExpire}
+                  size="large"
+                  showProgress={true}
+                />
+                <div className="mt-2 text-sm text-gray-600">
+                  <span className="font-medium">Time Remaining: {currentStimulusTime} seconds</span>
+                  {displayInfo.warningMessage && (
+                    <div className="text-orange-600 font-medium mt-1">
+                      {displayInfo.warningMessage}
+                    </div>
+                  )}
+                  {displayInfo.penaltyMessage && (
+                    <div className="text-red-600 font-medium mt-1">
+                      {displayInfo.penaltyMessage}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-
-            {/* Stimulus Display */}
             <div className="text-center mb-8">
               <div className="bg-gray-50 rounded-lg p-8 mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Stimulus {currentStimulusIndex + 1}
-                </h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Stimulus {currentStimulusIndex + 1} of {stroopStimuli.length}
+                  </h2>
+                  <div className="text-right">
+                    <div className={`text-lg font-bold ${displayInfo.timeClass}`}>
+                      {currentStimulusTime}s
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {displayInfo.timeLabel}
+                    </div>
+                  </div>
+                </div>
                 <div className="mb-4">
                   <p className="text-sm text-gray-600 mb-2">What color is this word displayed in?</p>
                   <div className={`text-6xl font-bold no-select ${getWordColorClass(currentStimulus.color)}`}>
@@ -207,8 +277,6 @@ const StroopTask = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Color Selection Buttons */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-md mx-auto">
                 {colorOptions.map((color) => (
                   <button
@@ -226,8 +294,6 @@ const StroopTask = () => {
                   </button>
                 ))}
               </div>
-
-              {/* Feedback */}
               {feedback.show && (
                 <div className={`mt-6 p-4 rounded-lg ${
                   feedback.isCorrect 
@@ -249,29 +315,32 @@ const StroopTask = () => {
                 </div>
               )}
             </div>
-
-            {/* Instructions */}
             <div className="text-center text-sm text-gray-500 mt-8">
               <p className="mb-2">
                 <strong>Important:</strong> Click the color that matches the font color, not what the word says!
               </p>
               <p>You must select the correct color to proceed to the next stimulus</p>
+              <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                <p className="text-green-700 font-medium">Unified Timer Rules:</p>
+                <p className="text-green-600 text-xs mt-1">
+                  • Start with 60 seconds per stimulus<br/>
+                  • Any wrong answer OR timeout = Next stimulus gets 55 seconds (-5s penalty)<br/>
+                  • Correct first try = Next stimulus keeps 60 seconds<br/>
+                  • Only two states: 60s (no penalty) or 55s (penalty)
+                </p>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Task Info */}
         <div className="max-w-2xl mx-auto mt-8 text-center">
           <div className="bg-white rounded-lg shadow-sm p-4">
             <div className="flex justify-between items-center text-sm text-gray-600">
-              <span>Task: Stroop Test</span>
-              <span>Time per stimulus: 15 seconds</span>
+              <span>Task: Stroop Test (20 Stimuli)</span>
+              <span>Current Time: {currentStimulusTime}s</span>
               <span>Progress: {currentStimulusIndex + 1}/{stroopStimuli.length}</span>
             </div>
           </div>
         </div>
-
-        {/* Example */}
         <div className="max-w-2xl mx-auto mt-6">
           <div className="bg-blue-50 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-blue-900 mb-2">Example:</h3>
