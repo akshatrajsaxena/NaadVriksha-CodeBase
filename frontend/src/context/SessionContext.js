@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { getISTISOString } from '../utils/time';
 
-// Action types
 const SESSION_ACTIONS = {
   INITIALIZE_SESSION: 'INITIALIZE_SESSION',
   START_TASK: 'START_TASK',
@@ -11,11 +11,10 @@ const SESSION_ACTIONS = {
   LOAD_FROM_STORAGE: 'LOAD_FROM_STORAGE'
 };
 
-// Initial state
 const initialState = {
   sessionId: null,
   startTime: null,
-  currentTask: 'home', // 'home', 'math', 'stroop', 'captcha', 'complete'
+  currentTask: 'home',
   tasks: {
     math: {
       taskType: 'math',
@@ -54,7 +53,6 @@ const initialState = {
   isCompleted: false
 };
 
-// Reducer function
 const sessionReducer = (state, action) => {
   switch (action.type) {
     case SESSION_ACTIONS.INITIALIZE_SESSION:
@@ -89,7 +87,6 @@ const sessionReducer = (state, action) => {
         }
       };
 
-      // Determine next task
       let nextTask = 'complete';
       if (action.payload.taskType === 'math' && !updatedTasks.stroop.isCompleted) {
         nextTask = 'stroop';
@@ -97,7 +94,6 @@ const sessionReducer = (state, action) => {
         nextTask = 'captcha';
       }
 
-      // Check if all tasks are completed
       const allCompleted = updatedTasks.math.isCompleted && 
                           updatedTasks.stroop.isCompleted && 
                           updatedTasks.captcha.isCompleted;
@@ -113,8 +109,7 @@ const sessionReducer = (state, action) => {
       const { taskType, questionData } = action.payload;
       const currentTask = state.tasks[taskType];
       const updatedQuestions = [...currentTask.questions];
-      
-      // Update or add question data
+
       const existingIndex = updatedQuestions.findIndex(q => q.questionId === questionData.questionId);
       if (existingIndex >= 0) {
         updatedQuestions[existingIndex] = questionData;
@@ -122,7 +117,6 @@ const sessionReducer = (state, action) => {
         updatedQuestions.push(questionData);
       }
 
-      // Calculate statistics
       const correctAnswers = updatedQuestions.filter(q => q.isCorrect).length;
       const totalResponseTime = updatedQuestions.reduce((sum, q) => sum + (q.responseTime || 0), 0);
       const averageResponseTime = updatedQuestions.length > 0 ? totalResponseTime / updatedQuestions.length : 0;
@@ -157,7 +151,7 @@ const sessionReducer = (state, action) => {
       return {
         ...initialState,
         sessionId: generateSessionId(),
-        startTime: new Date().toISOString()
+        startTime: getISTISOString()
       };
 
     case SESSION_ACTIONS.LOAD_FROM_STORAGE:
@@ -171,7 +165,6 @@ const sessionReducer = (state, action) => {
   }
 };
 
-// Utility functions
 const generateSessionId = () => {
   return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
@@ -194,10 +187,8 @@ const loadFromLocalStorage = () => {
   }
 };
 
-// Create context
 const SessionContext = createContext();
 
-// Custom hook to use session context
 export const useSession = () => {
   const context = useContext(SessionContext);
   if (!context) {
@@ -206,11 +197,9 @@ export const useSession = () => {
   return context;
 };
 
-// Session provider component
 export const SessionProvider = ({ children }) => {
   const [state, dispatch] = useReducer(sessionReducer, initialState);
 
-  // Initialize session on mount
   useEffect(() => {
     const savedSession = loadFromLocalStorage();
     if (savedSession && savedSession.sessionId) {
@@ -223,27 +212,25 @@ export const SessionProvider = ({ children }) => {
         type: SESSION_ACTIONS.INITIALIZE_SESSION,
         payload: {
           sessionId: generateSessionId(),
-          startTime: new Date().toISOString()
+          startTime: getISTISOString()
         }
       });
     }
   }, []);
 
-  // Save to localStorage whenever state changes
   useEffect(() => {
     if (state.sessionId) {
       saveToLocalStorage(state);
     }
   }, [state]);
 
-  // Action creators
   const actions = {
     initializeSession: () => {
       dispatch({
         type: SESSION_ACTIONS.INITIALIZE_SESSION,
         payload: {
           sessionId: generateSessionId(),
-          startTime: new Date().toISOString()
+          startTime: getISTISOString()
         }
       });
     },
@@ -253,7 +240,7 @@ export const SessionProvider = ({ children }) => {
         type: SESSION_ACTIONS.START_TASK,
         payload: {
           taskType,
-          startTime: new Date().toISOString()
+          startTime: getISTISOString()
         }
       });
     },
@@ -263,7 +250,7 @@ export const SessionProvider = ({ children }) => {
         type: SESSION_ACTIONS.COMPLETE_TASK,
         payload: {
           taskType,
-          endTime: new Date().toISOString()
+          endTime: getISTISOString()
         }
       });
     },
@@ -275,7 +262,7 @@ export const SessionProvider = ({ children }) => {
           taskType,
           questionData: {
             ...questionData,
-            timestamp: new Date().toISOString()
+            timestamp: getISTISOString()
           }
         }
       });
@@ -302,12 +289,12 @@ export const SessionProvider = ({ children }) => {
       const totalCorrect = Object.values(state.tasks).reduce((sum, task) => sum + task.totalCorrect, 0);
       const totalAttempted = Object.values(state.tasks).reduce((sum, task) => sum + task.totalAttempted, 0);
       const overallAccuracy = totalAttempted > 0 ? (totalCorrect / totalAttempted) * 100 : 0;
-      
+
       const results = {
         sessionInfo: {
           sessionId: state.sessionId,
           startTime: state.startTime,
-          completionTime: new Date().toISOString(),
+          completionTime: getISTISOString(),
           isCompleted: state.isCompleted
         },
         taskResults: {},
@@ -320,7 +307,6 @@ export const SessionProvider = ({ children }) => {
         }
       };
 
-      // Process each task for taskResults
       Object.entries(state.tasks).forEach(([taskType, taskData]) => {
         results.taskResults[taskType] = {
           taskType: taskData.taskType,
@@ -344,7 +330,7 @@ export const SessionProvider = ({ children }) => {
           }))
         };
       });
-      
+
       return results;
     }
   };
@@ -352,7 +338,6 @@ export const SessionProvider = ({ children }) => {
   const contextValue = {
     state,
     actions,
-    // Convenience getters
     currentTask: state.currentTask,
     isCompleted: state.isCompleted,
     getTaskData: (taskType) => state.tasks[taskType],
