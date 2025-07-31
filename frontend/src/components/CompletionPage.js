@@ -8,6 +8,75 @@ const CompletionPage = () => {
   const [results, setResults] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Utility function to convert UTC timestamp to IST format
+  const convertToIST = (utcTimestamp) => {
+    if (!utcTimestamp) return null;
+    
+    try {
+      // Parse the UTC timestamp
+      const utcDate = new Date(utcTimestamp);
+      
+      // Check if the date is valid
+      if (isNaN(utcDate.getTime())) {
+        console.warn('Invalid timestamp provided:', utcTimestamp);
+        return utcTimestamp; // Return original if invalid
+      }
+      
+      // Add IST offset (5 hours 30 minutes = 19800000 milliseconds)
+      const istDate = new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
+      
+      // Format to DD-MM-YYYY HH:mm:ss
+      const day = String(istDate.getUTCDate()).padStart(2, '0');
+      const month = String(istDate.getUTCMonth() + 1).padStart(2, '0');
+      const year = istDate.getUTCFullYear();
+      const hours = String(istDate.getUTCHours()).padStart(2, '0');
+      const minutes = String(istDate.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(istDate.getUTCSeconds()).padStart(2, '0');
+      
+      return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    } catch (error) {
+      console.error('Error converting timestamp to IST:', error);
+      return utcTimestamp; // Return original if conversion fails
+    }
+  };
+
+  // Function to recursively convert timestamps in the results object
+  const convertTimestampsToIST = (data) => {
+    if (!data) return data;
+    
+    // Handle arrays
+    if (Array.isArray(data)) {
+      return data.map(item => convertTimestampsToIST(item));
+    }
+    
+    // Handle objects
+    if (typeof data === 'object' && data !== null) {
+      const converted = {};
+      
+      for (const [key, value] of Object.entries(data)) {
+        // Check if this is a timestamp field that needs conversion
+        const isTimestampField = key.includes('_at') || key.includes('Time');
+        const isTimestampValue = typeof value === 'string' && 
+                                 (value.includes('T') || value.includes('Z')) &&
+                                 !isNaN(Date.parse(value));
+        
+        if (isTimestampField && isTimestampValue) {
+          const convertedTimestamp = convertToIST(value);
+          converted[key] = convertedTimestamp || value; // Fallback to original if conversion fails
+        } else if (typeof value === 'object') {
+          // Recursively convert nested objects
+          converted[key] = convertTimestampsToIST(value);
+        } else {
+          converted[key] = value;
+        }
+      }
+      
+      return converted;
+    }
+    
+    return data;
+  };
+
   useEffect(() => {
     // Export results when component mounts
     const exportedResults = actions.exportResults();
@@ -22,11 +91,25 @@ const CompletionPage = () => {
   const handleDownloadResults = () => {
     if (!results) return;
 
-    const dataStr = JSON.stringify(results, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    // Convert all timestamps to IST format before download
+    const resultsWithIST = convertTimestampsToIST(results);
     
-    const exportFileDefaultName = `naadvriksha_results_${results.sessionInfo.sessionId}.json`;
-    
+    // Add metadata about timestamp conversion
+    const finalResults = {
+      ...resultsWithIST,
+      metadata: {
+        ...resultsWithIST.metadata,
+        timestampFormat: "DD-MM-YYYY HH:mm:ss (IST - Indian Standard Time UTC+05:30)",
+        conversionNote: "All timestamps have been converted from UTC to Indian Standard Time",
+        conversionTimestamp: new Date().toISOString()
+      }
+    };
+
+    const dataStr = JSON.stringify(finalResults, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = `naadvriksha_results_ist_${results.sessionInfo.sessionId}.json`;
+
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
@@ -77,21 +160,21 @@ const CompletionPage = () => {
               </div>
               <div className="text-sm text-gray-600">Tasks Completed</div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
               <div className="text-3xl font-bold text-green-600 mb-2">
                 {safeTotalCorrect}
               </div>
               <div className="text-sm text-gray-600">Correct Answers</div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
               <div className="text-3xl font-bold text-purple-600 mb-2">
                 {safeOverallAccuracy.toFixed(1)}%
               </div>
               <div className="text-sm text-gray-600">Overall Accuracy</div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
               <div className="text-3xl font-bold text-orange-600 mb-2">
                 {(safeAverageResponseTime / 1000).toFixed(1)}s
@@ -105,7 +188,7 @@ const CompletionPage = () => {
         <div className="max-w-4xl mx-auto mb-8">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Task Performance</h2>
-            
+
             <div className="space-y-6">
               {taskResults && Object.entries(taskResults).map(([taskType, taskData]) => {
                 const taskNames = {
@@ -113,15 +196,15 @@ const CompletionPage = () => {
                   stroop: 'Stroop Task',
                   captcha: 'CAPTCHA Task'
                 };
-                
+
                 const taskColors = {
                   math: 'blue',
                   stroop: 'green',
                   captcha: 'purple'
                 };
-                
+
                 const color = taskColors[taskType];
-                
+
                 // Safety checks for task data
                 const safeTaskData = {
                   totalQuestions: taskData?.totalQuestions ?? 0,
@@ -130,22 +213,21 @@ const CompletionPage = () => {
                   averageResponseTime: taskData?.averageResponseTime ?? 0,
                   isCompleted: taskData?.isCompleted ?? false
                 };
-                
+
                 return (
                   <div key={taskType} className="border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className={`text-lg font-semibold text-${color}-600`}>
                         {taskNames[taskType]}
                       </h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        safeTaskData.isCompleted 
-                          ? 'bg-green-100 text-green-800' 
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${safeTaskData.isCompleted
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-gray-100 text-gray-800'
-                      }`}>
+                        }`}>
                         {safeTaskData.isCompleted ? 'Completed' : 'Incomplete'}
                       </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="text-center">
                         <div className={`text-2xl font-bold text-${color}-600`}>
@@ -153,21 +235,21 @@ const CompletionPage = () => {
                         </div>
                         <div className="text-sm text-gray-600">Questions</div>
                       </div>
-                      
+
                       <div className="text-center">
                         <div className={`text-2xl font-bold text-${color}-600`}>
                           {safeTaskData.totalCorrect}
                         </div>
                         <div className="text-sm text-gray-600">Correct</div>
                       </div>
-                      
+
                       <div className="text-center">
                         <div className={`text-2xl font-bold text-${color}-600`}>
                           {safeTaskData.accuracy.toFixed(1)}%
                         </div>
                         <div className="text-sm text-gray-600">Accuracy</div>
                       </div>
-                      
+
                       <div className="text-center">
                         <div className={`text-2xl font-bold text-${color}-600`}>
                           {(safeTaskData.averageResponseTime / 1000).toFixed(1)}s
@@ -175,7 +257,7 @@ const CompletionPage = () => {
                         <div className="text-sm text-gray-600">Avg Time</div>
                       </div>
                     </div>
-                    
+
                     {/* Progress Bar */}
                     <div className="mt-4">
                       <div className="flex justify-between text-sm text-gray-600 mb-1">
@@ -183,7 +265,7 @@ const CompletionPage = () => {
                         <span>{safeTaskData.totalCorrect}/{safeTaskData.totalQuestions}</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className={`bg-${color}-500 h-2 rounded-full transition-all duration-300`}
                           style={{ width: `${Math.min(safeTaskData.accuracy, 100)}%` }}
                         />
@@ -196,7 +278,7 @@ const CompletionPage = () => {
           </div>
         </div>
 
-        {/* Session Details */}
+        {/* Session Details
         <div className="max-w-4xl mx-auto mb-8">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="flex items-center justify-between mb-6">
@@ -208,54 +290,55 @@ const CompletionPage = () => {
                 {showDetails ? 'Hide Details' : 'Show Details'}
               </button>
             </div>
-            
+
             {showDetails && (
               <div className="space-y-4 text-sm">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <span className="font-medium text-gray-700">Session ID:</span>
-                    <span className="ml-2 text-gray-600 font-mono">{sessionInfo?.sessionId || 'N/A'}</span>
-                  </div>
-                  <div>
                     <span className="font-medium text-gray-700">Start Time:</span>
                     <span className="ml-2 text-gray-600">
-                      {sessionInfo?.startTime ? new Date(sessionInfo.startTime).toLocaleString() : 'N/A'}
+                      {sessionInfo?.startTime
+                        ? new Date(sessionInfo.startTime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+                        : 'N/A'}
                     </span>
                   </div>
                   <div>
                     <span className="font-medium text-gray-700">Completion Time:</span>
                     <span className="ml-2 text-gray-600">
-                      {sessionInfo?.completionTime ? new Date(sessionInfo.completionTime).toLocaleString() : 'N/A'}
+                      {sessionInfo?.completionTime
+                        ? new Date(sessionInfo.completionTime).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+                        : 'N/A'}
                     </span>
                   </div>
+
                   <div>
                     <span className="font-medium text-gray-700">Total Duration:</span>
                     <span className="ml-2 text-gray-600">
-                      {sessionInfo?.startTime && sessionInfo?.completionTime 
-                        ? Math.round((new Date(sessionInfo.completionTime) - new Date(sessionInfo.startTime)) / 1000 / 60)
+                      {sessionInfo?.startTime && sessionInfo?.completionTime
+                        ? Math.round((new Date(sessionInfo.completionTime) - new Date(sessionInfo.startTime)) / 1000)
                         : 0
-                      } minutes
+                      } seconds
                     </span>
                   </div>
                 </div>
               </div>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Actions */}
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-xl font-bold text-gray-900 mb-6">What's Next?</h2>
-            
+
             <div className="space-y-4">
               <button
                 onClick={handleDownloadResults}
                 className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors mr-0 md:mr-4 mb-4 md:mb-0"
               >
-                Download Results
+                Download Results (IST Format)
               </button>
-              
+
               <button
                 onClick={handleStartOver}
                 className="w-full md:w-auto px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors"
@@ -263,12 +346,16 @@ const CompletionPage = () => {
                 Start New Assessment
               </button>
             </div>
-            
+
             <div className="mt-8 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Thank you for your participation!</strong> Your data contributes to our research 
-                on Plant-Computer Interaction and human cognitive assessment. The results have been 
+                <strong>Thank you for your participation!</strong> Your data contributes to our research
+                on Plant-Computer Interaction and human cognitive assessment. The results have been
                 saved locally and can be downloaded for your records.
+              </p>
+              <p className="text-xs text-blue-600 mt-2">
+                <strong>Note:</strong> Downloaded timestamps are converted to Indian Standard Time (IST) 
+                and formatted as DD-MM-YYYY HH:mm:ss for better readability.
               </p>
             </div>
           </div>
