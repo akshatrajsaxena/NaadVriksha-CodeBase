@@ -70,7 +70,6 @@ export const captchaImages = {
   '021p1.png': img20
 };
 
-// Enhanced challenges with proper image imports
 export const imageCaptchaChallengesWithImages = [
   { id: 1, image: img1, answer: '0003U', filename: '0003U.png' },
   { id: 2, image: img2, answer: '000HU', filename: '000HU.png' },
